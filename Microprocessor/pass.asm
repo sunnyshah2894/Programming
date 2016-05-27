@@ -1,0 +1,67 @@
+.model small
+.stack 100h
+.data
+	PASS db "aashu$" ;STORED PASSWORD
+	len equ $-PASS
+	IP db 20 dup('$')
+	ACCEPT DB 'CORRECT PASSWORD$'
+	DECLINE DB 'INCORRECT PASSWORD$'
+	NEWLINE DB 10,13,"$"
+
+.code
+start:
+		mov AX,@data
+		mov DS,AX
+		
+		MOV CL,00H ;USED TO STORE IP CHARACTER.
+	    MOV SI,00H
+		IP1:
+			MOV AH,07H ;IP CHARACTER WISE.
+			INT 21H
+			CMP AL,0DH ;HEX FOR CHARACTER "ENTER".
+			JE CHECK
+			MOV [IP+SI],AL
+			MOV DL,'*'
+			MOV AH,02H ;DISP. A CHAR.
+			INT 21H
+			INC CL
+			INC SI
+			JMP IP1
+   CHECK:
+		LEA SI,PASS
+		LEA DI,IP
+		
+		MOV BL,LEN
+		DEC BL  ;FOR $ IN PASS
+		
+		CMP CL,BL
+		JNE NOT_MATCH ;IMP.
+	L1:	
+	    MOV AL,BYTE PTR [SI]
+		CMP BYTE PTR [DI],AL
+		JNE NOT_MATCH
+		INC DI
+		INC SI
+		DEC CL
+		JNZ L1
+ MATCH:	
+		MOV AH,09H
+		LEA DX,NEWLINE
+		INT 21H
+		
+		MOV AH,09h
+		LEA DX,ACCEPT
+		INT 21H
+		JMP EXIT
+NOT_MATCH:
+        MOV AH,09H
+		LEA DX,NEWLINE
+		INT 21H
+		
+		MOV AH,09h
+		LEA DX,DECLINE
+		INT 21H
+  EXIT:
+		MOV AH,4CH
+        INT 21H
+end start
